@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.io.*;
+import java.util.stream.Stream;
 
 public class Search {
 
@@ -24,7 +25,8 @@ public class Search {
     static boolean printPos = false;    // Print all positions found
     static int warmups = 0;             // No. of warmup searches
     static int runs = 1;                // No. of search repetitions
-    static String  datafile;            // Name of data file 
+    static String datafile;            // Name of data file
+    static String threadPoolType;
 
 
     static void getArguments(String[] argv) {
@@ -74,6 +76,11 @@ public class Search {
 
                 if (argv.length > i) {
                     nthreads = new Integer(argv[i]);
+                    i++;
+                }
+
+                if (argv.length > i) {
+                    threadPoolType = argv[i];
                     i++;
                 }
 
@@ -146,15 +153,14 @@ public class Search {
 
             /* Get and print program parameters */
             getArguments(argv);
-            System.out.printf("\nFile=%s, pattern='%s'\nntasks=%d, nthreads=%d, warmups=%d, runs=%d\n",
-                    fname, new String(pattern), ntasks, nthreads, warmups, runs);
-
-            /* Setup execution engine */
-            ExecutorService engine = Executors.newSingleThreadExecutor();
+            System.out.printf("\nFile=%s, pattern='%s'\nntasks=%d, nthreads=%d, warmups=%d, runs=%d\n, Thread pool type=%s",
+                    fname, new String(pattern), ntasks, nthreads, warmups, runs, threadPoolType);
 
             /**********************************************
              * Run search using a single task
              *********************************************/
+            /* Setup execution engine */
+            ExecutorService engine  = Executors.newSingleThreadExecutor();
             SearchTask singleSearch = new SearchTask(text, pattern, 0, len);
 
             List<Integer> singleResult = null;
@@ -190,12 +196,38 @@ public class Search {
             /**********************************************
              * Run search using multiple tasks
              *********************************************/
+            if (threadPoolType.equals("fixed")) {
+                engine = Executors.newFixedThreadPool(nthreads);
+            }
+            else if (threadPoolType.equals("cached")) {
+                engine = Executors.newCachedThreadPool();
+            }
+            else {
+                engine  = Executors.newSingleThreadExecutor();
+            }
 
-/*+++++++++ Uncomment for Problem 2+ 
-         
-            // Create list of tasks
             List<SearchTask> taskList = new ArrayList<SearchTask>();
-            // Add tasks to list here
+
+            int chunkSize = len / ntasks;
+            int from = 0;
+            int to = chunkSize;
+
+            // Split task based on desired number of task lists.
+            // Here we also consider the possibility that the text is split on top of the pattern.
+            // This is solved by creating overlapping "from" and "to" delimiters.
+            for (int x = 0; x < ntasks; x++) {
+                if (to + pattern.length <= text.length) {
+                    SearchTask searchTask = new SearchTask(text, pattern, from, to + pattern.length);
+                    taskList.add(searchTask);
+                    from += chunkSize;
+                    to += chunkSize;
+                }
+                else {
+                    SearchTask searchTask = new SearchTask(text, pattern, from, text.length);
+                    taskList.add(searchTask);
+                }
+
+            }
 
             List<Integer> result = null;
             
@@ -215,7 +247,13 @@ public class Search {
 
                 // Overall result is an ordered list of unique occurrence positions
                 result = new LinkedList<Integer>();
-                // Combine future results into an overall result 
+                for (int i = 0; i < futures.size(); i++) {
+                    Future<List<Integer>> future = futures.get(i);
+                    for (Integer v : future.get()) {
+                        result.add(v);
+
+                    }
+                }
 
                 time = (double) (System.nanoTime() - start) / 1e9;
                 totalTime += time;    
@@ -228,17 +266,11 @@ public class Search {
             System.out.printf("\n\nUsing %2d tasks (avg.): ", ntasks); 
             writeTime(multiTime);  System.out.println();
 
-            
             if (!singleResult.equals(result)) {
                 System.out.println("\nERROR: lists differ");
             }
             System.out.printf("\n\nAverage speedup: %1.2f\n\n", singleTime / multiTime);
 
-++++++++++*/
-
-            /**********************************************
-             * Terminate engine after use
-             *********************************************/
             engine.shutdown();
 
         } catch (Exception e) {
