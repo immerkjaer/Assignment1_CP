@@ -230,6 +230,7 @@ public class Search {
             }
 
             List<Integer> result = null;
+            List<Integer> resultWithoutDuplicates = null;
             
             // Run the tasks a couple of times
             for (int i = 0; i < warmups; i++) {
@@ -266,7 +267,9 @@ public class Search {
             System.out.printf("\n\nUsing %2d tasks (avg.): ", ntasks); 
             writeTime(multiTime);  System.out.println();
 
-            if (!singleResult.equals(result)) {
+            resultWithoutDuplicates = new LinkedList<>(
+                    new LinkedHashSet<>(result));
+            if (!singleResult.equals(resultWithoutDuplicates)) {
                 System.out.println("\nERROR: lists differ");
             }
             System.out.printf("\n\nAverage speedup: %1.2f\n\n", singleTime / multiTime);
