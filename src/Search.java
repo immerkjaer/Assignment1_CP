@@ -4,12 +4,55 @@
  * Version 1.1
  */
 
+
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+
+
+/**
+ * Search task. No need to modify.
+ */
+class SearchTask implements Callable<List<Integer>> {
+
+    char[] text, pattern;
+    int from = 0, to = 0; // Searched string: text[from..(to-1)]
+
+    /**
+     * Create a task for searching occurrences of 'pattern' in the substring
+     * text[from..(to-1)]
+     */
+    public SearchTask(char[] text, char[] pattern, int from, int to) {
+        this.text = text;
+        this.pattern = pattern;
+        this.from = from;
+        this.to = to;
+    }
+
+    public List<Integer> call() {
+        final int pl = pattern.length;
+        List<Integer> result = new LinkedList<Integer>();
+
+        // VERY naive string matching to consume some CPU-cycles
+        for (int i = from; i <= to - pl; i++) {
+            boolean eq = true;
+            for (int j = 0; j < pl; j++) {
+                if (text[i + j] != pattern[j])
+                    eq = false; // We really should break here
+            }
+            if (eq)
+                result.add(i);
+        }
+
+        return result;
+    }
+}
+
 
 public class Search {
 
@@ -24,7 +67,8 @@ public class Search {
     static boolean printPos = false;    // Print all positions found
     static int warmups = 0;             // No. of warmup searches
     static int runs = 1;                // No. of search repetitions
-    static String  datafile;            // Name of data file 
+    static String datafile = "data";    // Name of data file
+    static String taskData = "";
 
 
     static void getArguments(String[] argv) {
@@ -129,7 +173,8 @@ public class Search {
         try {
             if (datafile != null) {
                 // Append result to data file
-                FileWriter f = new FileWriter(datafile,true);
+                //FileWriter f = new FileWriter(datafile,true);     // appends to file instead of creating a new one
+                FileWriter f = new FileWriter(datafile);
                 PrintWriter data =  new PrintWriter(new BufferedWriter(f));
                 data.println(s);
                 data.close();
@@ -164,6 +209,7 @@ public class Search {
              * cache warm-up
              */
             for (int i = 0; i < warmups; i++) {
+                // get() function waits for the submitted task to terminate
                 engine.submit(singleSearch).get();
             }
 
@@ -180,8 +226,9 @@ public class Search {
 
                 System.out.print("\nSingle task: ");
                 writeRun(run);  writeResult(singleResult);  writeTime(time);
+                taskData += String.valueOf(run) + "\t" + String.valueOf(time) + "\t" + String.valueOf(singleResult.size()) + "\n";
             }
-
+            writeData(taskData);
             double singleTime = totalTime / runs;
             System.out.print("\n\nSingle task (avg.): ");
             writeTime(singleTime);  System.out.println();
@@ -191,21 +238,21 @@ public class Search {
              * Run search using multiple tasks
              *********************************************/
 
-/*+++++++++ Uncomment for Problem 2+ 
-         
+/*+++++++++ Uncomment for Problem 2+
+
             // Create list of tasks
             List<SearchTask> taskList = new ArrayList<SearchTask>();
             // Add tasks to list here
 
             List<Integer> result = null;
-            
+
             // Run the tasks a couple of times
             for (int i = 0; i < warmups; i++) {
                 engine.invokeAll(taskList);
             }
-            
+
             totalTime = 0.0;
-            
+
             for (int run = 0; run < runs; run++) {
 
                 start = System.nanoTime();
@@ -215,20 +262,20 @@ public class Search {
 
                 // Overall result is an ordered list of unique occurrence positions
                 result = new LinkedList<Integer>();
-                // Combine future results into an overall result 
+                // Combine future results into an overall result
 
                 time = (double) (System.nanoTime() - start) / 1e9;
-                totalTime += time;    
-                
+                totalTime += time;
+
                 System.out.printf("\nUsing %2d tasks: ", ntasks);
                 writeRun(run);  writeResult(result);  writeTime(time);
             }
 
             double multiTime = totalTime / runs;
-            System.out.printf("\n\nUsing %2d tasks (avg.): ", ntasks); 
+            System.out.printf("\n\nUsing %2d tasks (avg.): ", ntasks);
             writeTime(multiTime);  System.out.println();
 
-            
+
             if (!singleResult.equals(result)) {
                 System.out.println("\nERROR: lists differ");
             }
@@ -244,43 +291,5 @@ public class Search {
         } catch (Exception e) {
             System.out.println("Search: " + e);
         }
-    }
-}
-
-/**
- * Search task. No need to modify.
- */
-class SearchTask implements Callable<List<Integer>> {
-
-    char[] text, pattern;
-    int from = 0, to = 0; // Searched string: text[from..(to-1)]
-
-    /**
-     * Create a task for searching occurrences of 'pattern' in the substring
-     * text[from..(to-1)]
-     */
-    public SearchTask(char[] text, char[] pattern, int from, int to) {
-        this.text = text;
-        this.pattern = pattern;
-        this.from = from;
-        this.to = to;
-    }
-
-    public List<Integer> call() {
-        final int pl = pattern.length;
-        List<Integer> result = new LinkedList<Integer>();
-
-        // VERY naive string matching to consume some CPU-cycles
-        for (int i = from; i <= to - pl; i++) {
-            boolean eq = true;
-            for (int j = 0; j < pl; j++) {
-                if (text[i + j] != pattern[j])
-                    eq = false; // We really should break here
-            }
-            if (eq)
-                result.add(i);
-        }
-
-        return result;
     }
 }
