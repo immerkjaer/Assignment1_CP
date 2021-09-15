@@ -69,7 +69,7 @@ public class Search {
     static int runs = 1;                // No. of search repetitions
     static String datafile = "data";    // Name of data file
     static String taskData = "";
-
+    static String threadPoolType;
 
     static void getArguments(String[] argv) {
         // Reads arguments into static variables
@@ -118,6 +118,10 @@ public class Search {
 
                 if (argv.length > i) {
                     nthreads = new Integer(argv[i]);
+                    i++;
+                }
+                if (argv.length > i) {
+                    threadPoolType = argv[i];
                     i++;
                 }
 
@@ -226,9 +230,9 @@ public class Search {
 
                 System.out.print("\nSingle task: ");
                 writeRun(run);  writeResult(singleResult);  writeTime(time);
-                taskData += String.valueOf(run) + "\t" + String.valueOf(time) + "\t" + String.valueOf(singleResult.size()) + "\n";
+                //taskData += String.valueOf(run) + "\t" + String.valueOf(time) + "\t" + String.valueOf(singleResult.size()) + "\n";
             }
-            writeData(taskData);
+            //writeData(taskData);
             double singleTime = totalTime / runs;
             System.out.print("\n\nSingle task (avg.): ");
             writeTime(singleTime);  System.out.println();
@@ -238,17 +242,42 @@ public class Search {
              * Run search using multiple tasks
              *********************************************/
 
-/*+++++++++ Uncomment for Problem 2+
-
             // Create list of tasks
             List<SearchTask> taskList = new ArrayList<SearchTask>();
             // Add tasks to list here
 
-            List<Integer> result = null;
+            List<Integer> result = new ArrayList<>();
 
             // Run the tasks a couple of times
             for (int i = 0; i < warmups; i++) {
                 engine.invokeAll(taskList);
+            }
+/*
+            if (threadPoolType.equals("fixed")) {
+                engine = Executors.newFixedThreadPool(nthreads);
+            }
+            else if (threadPoolType.equals("cached")) {
+                engine = Executors.newCachedThreadPool();
+            }
+            else {
+                engine  = Executors.newSingleThreadExecutor();
+            }
+*/
+            int chunkSize = (int)Math.round((double)len / ntasks);
+            int from = 0;
+            int to = chunkSize;
+
+            // Split task based on desired number of task lists.
+            for (int x = 0; x < ntasks; x++) {
+                if (to + pattern.length <= text.length) {
+                    SearchTask searchTask = new SearchTask(text, pattern, from, to + pattern.length);
+                    taskList.add(searchTask);
+                    from = to + 1;
+                    to += chunkSize;
+                } else {
+                    SearchTask searchTask = new SearchTask(text, pattern, from, text.length);
+                    taskList.add(searchTask);
+                }
             }
 
             totalTime = 0.0;
@@ -262,7 +291,15 @@ public class Search {
 
                 // Overall result is an ordered list of unique occurrence positions
                 result = new LinkedList<Integer>();
+
                 // Combine future results into an overall result
+                for (int i = 0; i < futures.size(); i++) {
+                    Future<List<Integer>> future = futures.get(i);
+                    for (Integer v : future.get()) {
+                        result.add(v);
+
+                    }
+                }
 
                 time = (double) (System.nanoTime() - start) / 1e9;
                 totalTime += time;
@@ -280,8 +317,6 @@ public class Search {
                 System.out.println("\nERROR: lists differ");
             }
             System.out.printf("\n\nAverage speedup: %1.2f\n\n", singleTime / multiTime);
-
-++++++++++*/
 
             /**********************************************
              * Terminate engine after use
