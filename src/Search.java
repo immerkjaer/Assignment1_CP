@@ -26,7 +26,7 @@ public class Search {
     static int warmups = 0;             // No. of warmup searches
     static int runs = 1;                // No. of search repetitions
     static String datafile;            // Name of data file
-    static String threadPoolType;
+    static String threadPoolType = "single";
 
 
     static void getArguments(String[] argv) {
@@ -110,19 +110,19 @@ public class Search {
         }
     }
 
-    static void writeResult(List<Integer> res) {
-        System.out.print("" + res.size() + " occurrences found in ");
-        if (printPos) {
-            int i = 0;
-            System.out.println();
-            for (int pos : res) {
-                System.out.printf(" %6d", pos);
-                if (++i % 10 == 0)
-                    System.out.println();
-            }
-            System.out.println();
-        }
-    }
+//    static void writeResult(List<Integer> res) {
+//        System.out.print("" + res.size() + " occurrences found in ");
+//        if (printPos) {
+//            int i = 0;
+//            System.out.println();
+//            for (int pos : res) {
+//                System.out.printf(" %6d", pos);
+//                if (++i % 10 == 0)
+//                    System.out.println();
+//            }
+//            System.out.println();
+//        }
+//    }
 
     static void writeTime(double time) {
         System.out.printf("%1.6f s", time);
@@ -184,8 +184,14 @@ public class Search {
                 time = (double) (System.nanoTime() - start) / 1e9;
                 totalTime += time;
 
-                System.out.print("\nSingle task: ");
-                writeRun(run);  writeResult(singleResult);  writeTime(time);
+                // System.out.print("\nSingle task: ");
+                // writeRun(run);
+                // writeResult(singleResult);
+                // writeTime(time);
+                if (printPos) {
+                    System.out.print("\nSingle task: ");
+                    writeTime(time);
+                }
             }
 
             double singleTime = totalTime / runs;
@@ -259,8 +265,14 @@ public class Search {
                 time = (double) (System.nanoTime() - start) / 1e9;
                 totalTime += time;    
                 
-                System.out.printf("\nUsing %2d tasks: ", ntasks);
-                writeRun(run);  writeResult(result);  writeTime(time);
+                // System.out.printf("\nUsing %2d tasks: ", ntasks);
+                // writeRun(run);
+                // writeResult(result);
+                // writeTime(time);
+                if (printPos) {
+                    System.out.print("\nSingle task: ");
+                    writeTime(time);
+                }
             }
 
             double multiTime = totalTime / runs;
@@ -279,6 +291,7 @@ public class Search {
         } catch (Exception e) {
             System.out.println("Search: " + e);
         }
+        System.exit(0);
     }
 }
 
