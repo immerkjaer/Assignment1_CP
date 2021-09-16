@@ -18,41 +18,6 @@ import java.io.FileWriter;
 /**
  * Search task. No need to modify.
  */
-class SearchTask implements Callable<List<Integer>> {
-
-    char[] text, pattern;
-    int from = 0, to = 0; // Searched string: text[from..(to-1)]
-
-    /**
-     * Create a task for searching occurrences of 'pattern' in the substring
-     * text[from..(to-1)]
-     */
-    public SearchTask(char[] text, char[] pattern, int from, int to) {
-        this.text = text;
-        this.pattern = pattern;
-        this.from = from;
-        this.to = to;
-    }
-
-    public List<Integer> call() {
-        final int pl = pattern.length;
-        List<Integer> result = new LinkedList<Integer>();
-
-        // VERY naive string matching to consume some CPU-cycles
-        for (int i = from; i <= to - pl; i++) {
-            boolean eq = true;
-            for (int j = 0; j < pl; j++) {
-                if (text[i + j] != pattern[j])
-                    eq = false; // We really should break here
-            }
-            if (eq)
-                result.add(i);
-        }
-
-        return result;
-    }
-}
-
 
 public class Search {
 
@@ -69,7 +34,7 @@ public class Search {
     static int runs = 1;                // No. of search repetitions
     static String datafile = "data";    // Name of data file
     static String taskData = "";
-    static String threadPoolType;
+    static String threadPoolType = "";
 
     static void getArguments(String[] argv) {
         // Reads arguments into static variables
@@ -232,6 +197,7 @@ public class Search {
                 writeRun(run);  writeResult(singleResult);  writeTime(time);
                 //taskData += String.valueOf(run) + "\t" + String.valueOf(time) + "\t" + String.valueOf(singleResult.size()) + "\n";
             }
+            //taskData += String.valueOf(run) + "\t" + String.valueOf(time) + "\t" + String.valueOf(singleResult.size()) + "\n";
             //writeData(taskData);
             double singleTime = totalTime / runs;
             System.out.print("\n\nSingle task (avg.): ");
@@ -252,7 +218,8 @@ public class Search {
             for (int i = 0; i < warmups; i++) {
                 engine.invokeAll(taskList);
             }
-/*
+
+
             if (threadPoolType.equals("fixed")) {
                 engine = Executors.newFixedThreadPool(nthreads);
             }
@@ -262,7 +229,8 @@ public class Search {
             else {
                 engine  = Executors.newSingleThreadExecutor();
             }
-*/
+
+
             int chunkSize = (int)Math.round((double)len / ntasks);
             int from = 0;
             int to = chunkSize;
@@ -306,8 +274,10 @@ public class Search {
 
                 System.out.printf("\nUsing %2d tasks: ", ntasks);
                 writeRun(run);  writeResult(result);  writeTime(time);
-            }
+                taskData += String.valueOf(run) + "\t" + String.valueOf(time) + "\t" + String.valueOf(singleResult.size()) + "\n";
 
+            }
+            writeData(taskData);
             double multiTime = totalTime / runs;
             System.out.printf("\n\nUsing %2d tasks (avg.): ", ntasks);
             writeTime(multiTime);  System.out.println();
@@ -326,5 +296,41 @@ public class Search {
         } catch (Exception e) {
             System.out.println("Search: " + e);
         }
+        System.exit(0);
+    }
+}
+
+class SearchTask implements Callable<List<Integer>> {
+
+    char[] text, pattern;
+    int from = 0, to = 0; // Searched string: text[from..(to-1)]
+
+    /**
+     * Create a task for searching occurrences of 'pattern' in the substring
+     * text[from..(to-1)]
+     */
+    public SearchTask(char[] text, char[] pattern, int from, int to) {
+        this.text = text;
+        this.pattern = pattern;
+        this.from = from;
+        this.to = to;
+    }
+
+    public List<Integer> call() {
+        final int pl = pattern.length;
+        List<Integer> result = new LinkedList<Integer>();
+
+        // VERY naive string matching to consume some CPU-cycles
+        for (int i = from; i <= to - pl; i++) {
+            boolean eq = true;
+            for (int j = 0; j < pl; j++) {
+                if (text[i + j] != pattern[j])
+                    eq = false; // We really should break here
+            }
+            if (eq)
+                result.add(i);
+        }
+
+        return result;
     }
 }

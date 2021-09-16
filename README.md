@@ -15,5 +15,8 @@ set grid <br />
 set xlabel "Run number" <br />
 set ylabel "Time: Seconds" <br />
 set xrange [-1:10] <br />
-plot "data" title "Time each occurence used for execution" linetype 7 linecolor -1 <br />
+set yrange [0:0.1] <br />
+plot "data" title "Time each occurence used for execution" linetype 7 linecolor -1 with linespoints <br />
 </code>
+
+cd C:\Users\regin\Git-Projects\Assignment1_CP
