@@ -1,23 +1,29 @@
 time-variation:
-		mkdir -p dumps/timeVariation
+		mkdir -p dumps
+		touch dumps/timeVariation.txt
+		echo timeVariation >> dumps/timeVariation.txt
 		java src/Search.java \
-				-P \
+				-ps \
 				-W 0 \
 				-R 10 \
 				Texts/shakespeare.txt "Something is rotten in the state of Denmark." \
 				1 \
-				> dumps/timeVariation/time_variation.txt
+				>> dumps/timeVariation.txt
+		sed -i 's/\./,/g' dumps/timeVariation.txt
 
 multiple-tasks-single-thread:
-		mkdir -p dumps/multipleTaskSingleThread
+		mkdir -p dumps
+		touch dumps/multipleTaskSingleThread.txt
+		echo tasks threads avgTimeMulti avgTimeSingle avgSpeedUp multipleTaskSingleThread >> dumps/multipleTaskSingleThread.txt
 		for number in 5 10 50 500 ; do \
 						java src/Search.java \
 								-W 5 \
 								-R 10 \
 								Texts/shakespeare.txt "Something is rotten in the state of Denmark." \
 								$$number \
-								> dumps/multipleTaskSingleThread/one_thread_tasks_$$number.txt ; \
+								>> dumps/multipleTaskSingleThread.txt ; \
 		done
+		sed -i 's/\./,/g' dumps/multipleTaskSingleThread.txt
 
 run-all:
 	@$(MAKE) time-variation
