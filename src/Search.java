@@ -1,9 +1,10 @@
-/*
+package src;/*
  * 02158 Concurrent Programming, Fall 2021
  * Mandatory Assignment 1
  * Version 1.1
  */
 
+import javax.rmi.ssl.SslRMIClientSocketFactory;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -22,11 +23,11 @@ public class Search {
     static char[] pattern;              // Search pattern
     static int ntasks = 1;              // No. of tasks
     static int nthreads = 1;            // No. of threads to use
-    static boolean printPos = false;    // Print all positions found
+    static boolean printEachSingle = false;    // Print for each iteration
     static int warmups = 0;             // No. of warmup searches
     static int runs = 1;                // No. of search repetitions
     static String datafile;            // Name of data file
-    static String threadPoolType;
+    static String threadPoolType = "single";
 
 
     static void getArguments(String[] argv) {
@@ -40,8 +41,8 @@ public class Search {
             while (i < argv.length) {
 
                 /* Check for options */
-                if (argv[i].equals("-P")) {
-                    printPos = true;
+                if (argv[i].equals("-ps")) {
+                    printEachSingle = true;
                     i++;
                     continue;
                 }
@@ -110,40 +111,8 @@ public class Search {
         }
     }
 
-    static void writeResult(List<Integer> res) {
-        System.out.print("" + res.size() + " occurrences found in ");
-        if (printPos) {
-            int i = 0;
-            System.out.println();
-            for (int pos : res) {
-                System.out.printf(" %6d", pos);
-                if (++i % 10 == 0)
-                    System.out.println();
-            }
-            System.out.println();
-        }
-    }
-
     static void writeTime(double time) {
         System.out.printf("%1.6f s", time);
-    }
-
-    static void writeRun(int no) {
-        System.out.printf("Run no. %2d: ", no);
-    }
-
-    static void writeData(String s) {
-        try {
-            if (datafile != null) {
-                // Append result to data file
-                FileWriter f = new FileWriter(datafile,true);
-                PrintWriter data =  new PrintWriter(new BufferedWriter(f));
-                data.println(s);
-                data.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void main(String[] argv) {
@@ -153,8 +122,6 @@ public class Search {
 
             /* Get and print program parameters */
             getArguments(argv);
-            System.out.printf("\nFile=%s, pattern='%s'\nntasks=%d, nthreads=%d, warmups=%d, runs=%d\n, Thread pool type=%s",
-                    fname, new String(pattern), ntasks, nthreads, warmups, runs, threadPoolType);
 
             /**********************************************
              * Run search using a single task
@@ -184,14 +151,13 @@ public class Search {
                 time = (double) (System.nanoTime() - start) / 1e9;
                 totalTime += time;
 
-                System.out.print("\nSingle task: ");
-                writeRun(run);  writeResult(singleResult);  writeTime(time);
+                if (printEachSingle) {
+                    System.out.printf("%.4f", time);
+                    System.out.println();
+                }
             }
 
             double singleTime = totalTime / runs;
-            System.out.print("\n\nSingle task (avg.): ");
-            writeTime(singleTime);  System.out.println();
-
 
             /**********************************************
              * Run search using multiple tasks
@@ -257,28 +223,28 @@ public class Search {
                 }
 
                 time = (double) (System.nanoTime() - start) / 1e9;
-                totalTime += time;    
-                
-                System.out.printf("\nUsing %2d tasks: ", ntasks);
-                writeRun(run);  writeResult(result);  writeTime(time);
+                totalTime += time;
             }
 
             double multiTime = totalTime / runs;
-            System.out.printf("\n\nUsing %2d tasks (avg.): ", ntasks); 
-            writeTime(multiTime);  System.out.println();
+            double avgSpeedUp = singleTime / multiTime;
+            if (!printEachSingle) {
+                System.out.printf("%d %d %.4f %.4f %.4f", ntasks, nthreads, multiTime, singleTime, avgSpeedUp);
+                System.out.println();
+            }
 
             resultWithoutDuplicates = new LinkedList<>(
                     new LinkedHashSet<>(result));
             if (!singleResult.equals(resultWithoutDuplicates)) {
                 System.out.println("\nERROR: lists differ");
             }
-            System.out.printf("\n\nAverage speedup: %1.2f\n\n", singleTime / multiTime);
 
             engine.shutdown();
 
         } catch (Exception e) {
-            System.out.println("Search: " + e);
+            System.out.println(e);
         }
+        System.exit(0);
     }
 }
 

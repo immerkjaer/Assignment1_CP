@@ -1,0 +1,6 @@
+tasks threads avgTimeMulti avgTimeSingle avgSpeedUp multipleTaskSingleThread
+5 1 0,2266 0,2262 0,9981
+10 1 0,2271 0,2272 1,0005
+50 1 0,2277 0,2266 0,9949
+4000 1 0,2774 0,2266 0,8168
+8000 1 0,3349 0,2349 0,7013
