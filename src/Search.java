@@ -241,7 +241,7 @@ public class Search {
                     SearchTask searchTask = new SearchTask(text, pattern, from, to + pattern.length);
                     taskList.add(searchTask);
                     from = to + 1;
-                    to += chunkSize;
+                    to += from + chunkSize;
                 } else {
                     SearchTask searchTask = new SearchTask(text, pattern, from, text.length);
                     taskList.add(searchTask);
