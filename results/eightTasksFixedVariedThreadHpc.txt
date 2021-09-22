@@ -1,0 +1,8 @@
+tasks threads avgTimeMulti avgTimeSingle avgSpeedUp eightTasksFixedVariedThreadHpc
+tasks threads avgTimeMulti avgTimeSingle avgSpeedUp eightTasksFixedVariedThreadHpc
+tasks threads avgTimeMulti avgTimeSingle avgSpeedUp eightTasksFixedVariedThreadHpc
+8 4 0,1163 0,3536 3,0399
+8 8 0,0506 0,3550 7,0116
+8 10 0,0509 0,3540 6,9565
+8 20 0,0526 0,3725 7,0831
+8 30 0,0511 0,5520 10,7978
