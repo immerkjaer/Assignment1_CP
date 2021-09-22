@@ -1,0 +1,6 @@
+tasks threads avgTimeMulti avgTimeSingle avgSpeedUp thirtyTasksFixedVariedThreadHpc
+30 4 0,0963 0,3561 3,6964
+30 8 0,0552 0,3607 6,5364
+30 12 0,0434 0,3594 8,2764
+30 30 0,0408 0,3582 8,7724
+30 50 0,0409 0,3532 8,6339
