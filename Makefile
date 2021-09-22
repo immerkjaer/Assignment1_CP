@@ -116,13 +116,13 @@ split-test:
 						>> dumps/splitTest.txt
 		sed -i 's/\./,/g' dumps/splitTest.txt 
 
-# HPC stuff
+# HPC stuff (you need to compile first using javac)
 8-tasks-fixed-hpc:
 		mkdir -p dumps
 		touch dumps/eightTasksFixedVariedThreadHpc.txt
 		echo tasks threads avgTimeMulti avgTimeSingle avgSpeedUp eightTasksFixedVariedThreadHpc >> dumps/eightTasksFixedVariedThreadHpc.txt
 		for number in 4 8 10 20 30 ; do \
-						java src/Search.java \
+						java src/Search \
 								-W 5 \
 								-R 5 \
 								Texts/shakespeare.txt "Something is rotten in the state of Denmark." \
@@ -138,7 +138,7 @@ split-test:
 		touch dumps/thirtyTasksFixedVariedThreadHpc.txt
 		echo tasks threads avgTimeMulti avgTimeSingle avgSpeedUp thirtyTasksFixedVariedThreadHpc >> dumps/thirtyTasksFixedVariedThreadHpc.txt
 		for number in 4 8 12 30 50 ; do \
-						java src/Search.java \
+						java src/Search \
 								-W 5 \
 								-R 5 \
 								Texts/shakespeare.txt "Something is rotten in the state of Denmark." \
@@ -154,7 +154,7 @@ cached-thread-pool-hpc:
 		touch dumps/cachedThreadPoolHpc.txt
 		echo tasks threads avgTimeMulti avgTimeSingle avgSpeedUp cachedThreadPoolHpc >> dumps/cachedThreadPoolHpc.txt
 		for number in 1 4 6 8 10 12 14 16 18 20 25 40 60 100 ; do \
-						java src/Search.java \
+						java src/Search \
 								-W 5 \
 								-R 5 \
 								Texts/shakespeare.txt "Something is rotten in the state of Denmark." \
