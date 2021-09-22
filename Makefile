@@ -116,6 +116,55 @@ split-test:
 						>> dumps/splitTest.txt
 		sed -i 's/\./,/g' dumps/splitTest.txt 
 
+# HPC stuff
+8-tasks-fixed-hpc:
+		mkdir -p dumps
+		touch dumps/eightTasksFixedVariedThreadHpc.txt
+		echo tasks threads avgTimeMulti avgTimeSingle avgSpeedUp eightTasksFixedVariedThreadHpc >> dumps/eightTasksFixedVariedThreadHpc.txt
+		for number in 4 8 10 20 30 ; do \
+						java src/Search.java \
+								-W 5 \
+								-R 5 \
+								Texts/shakespeare.txt "Something is rotten in the state of Denmark." \
+								8 \
+								$$number \
+								"fixed" \
+								>> dumps/eightTasksFixedVariedThreadHpc.txt ; \
+		done
+		sed -i 's/\./,/g' dumps/eightTasksFixedVariedThreadHpc.txt 
+
+30-tasks-fixed-hpc:
+		mkdir -p dumps
+		touch dumps/thirtyTasksFixedVariedThreadHpc.txt
+		echo tasks threads avgTimeMulti avgTimeSingle avgSpeedUp thirtyTasksFixedVariedThreadHpc >> dumps/thirtyTasksFixedVariedThreadHpc.txt
+		for number in 4 8 12 30 50 ; do \
+						java src/Search.java \
+								-W 5 \
+								-R 5 \
+								Texts/shakespeare.txt "Something is rotten in the state of Denmark." \
+								30 \
+								$$number \
+								"fixed" \
+								>> dumps/thirtyTasksFixedVariedThreadHpc.txt ; \
+		done
+		sed -i 's/\./,/g' dumps/thirtyTasksFixedVariedThreadHpc.txt 
+
+cached-thread-pool-hpc:
+		mkdir -p dumps
+		touch dumps/cachedThreadPoolHpc.txt
+		echo tasks threads avgTimeMulti avgTimeSingle avgSpeedUp cachedThreadPoolHpc >> dumps/cachedThreadPoolHpc.txt
+		for number in 1 4 6 8 10 12 14 16 18 20 25 40 60 100 ; do \
+						java src/Search.java \
+								-W 5 \
+								-R 5 \
+								Texts/shakespeare.txt "Something is rotten in the state of Denmark." \
+								$$number \
+								1 \
+								"cached" \
+								>> dumps/cachedThreadPoolHpc.txt ; \
+		done
+		sed -i 's/\./,/g' dumps/cachedThreadPoolHpc.txt 
+
 run-all:
 	@$(MAKE) time-variation
 	@$(MAKE) no-jit
@@ -125,6 +174,11 @@ run-all:
 	@$(MAKE) 8-tasks-fixed
 	@$(MAKE) 30-tasks-fixed
 	@$(MAKE) split-test
+
+run-all-hpc:
+	@$(MAKE) 8-tasks-fixed-hpc
+	@$(MAKE) 30-tasks-fixed-hpc
+	@$(MAKE) cached-thread-pool-hpc
 
 delete:
 	rm -rf dumps
